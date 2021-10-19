@@ -21,10 +21,10 @@ struct Palabra {
     List* apariciones;
 };
 
- typedef struct {
+struct ArrayOrden{
     char nombreDoc[25];
     int cantApariciones;
-}ArrayOrden;
+};
 
 char *convertirAMinusculas(char *palabra) {
     char *aux = calloc(strlen(palabra)+1, sizeof(char));
