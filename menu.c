@@ -8,12 +8,13 @@
 #include "headers/hashmap.h"
 #include "headers/list.h"
 
+#define CANT_DOCS 58
 
-char * _strdup(const char * str) {
+/*char * _strdup(const char * str) {
     char * aux = (char *)malloc(strlen(str) + 1);
     strcpy(aux, str);
     return aux;
-}
+}*/
 
 int lower_than_string(void* key1, void* key2){
     char* k1=(char*) key1;
@@ -39,8 +40,8 @@ int getChoice() {
 }
 
 void initMenu() {
-    TreeMap* documentos = createTreeMap(lower_than_string); 
-    HashMap* palabrasGlobales = createMap(100);
+    TreeMap* documentos = createTreeMap(lower_than_string);  // Key: nombre de documento   Value: puntero a struct Documento
+    HashMap* palabrasGlobales = createMap(100);  // Key: palabra   Value: lista con punteros a todos los documentos que contienen la palabra
 
     int choice;
 
@@ -49,13 +50,12 @@ void initMenu() {
         printf("|                                                                      |\n");
         printf("|         MENU OPCIONES                                                |\n");
         printf("|                                                                      |\n");
-        printf("|         1: Cargar lista de documentos                                |\n");
+        printf("|         1: Cargar documentos                                         |\n");
         printf("|         2: Mostrar documentos ordenados                              |\n");
-        printf("|         3: Buscar por palabra                                        |\n");
-        printf("|         4: Buscar palabras con mayor frecuencia                      |\n");
-        printf("|         5: Buscar palabras mas relevantes                            |\n");
-        printf("|         6: Buscar palabras en documento                              |\n");
-        printf("|         7: Mostrar todos los productos                               |\n");
+        printf("|         3: Buscar documentos por palabra                             |\n");
+        printf("|         4: Mostrar palabras frecuentes de un documento               |\n");
+        printf("|         5: Mostrar palabras mas relevantes de un documento           |\n");
+        printf("|         6: Mostrar contexto de una palabra en un documento           |\n");
         printf("|         0: Salir                                                     |\n");
         printf("|                                                                      |\n");
         printf(" ----------------------------------------------------------------------\n");
@@ -64,17 +64,39 @@ void initMenu() {
 
         switch (choice) {
             case 1:
-                cargarDocumento(documentos, palabrasGlobales, "16-0.txt");
-                cargarDocumento(documentos, palabrasGlobales, "76-0.txt");
+                cargarDocumentoIU(documentos, palabrasGlobales);
                 break;
             case 2:
                 mostrarDocumentos(documentos);
                 break;
-            case 3: break;
+            case 3:
+                buscarPorPalabra(palabrasGlobales);
+                break;
             case 4: break;
             case 5: break;
             case 6: break;
-            case 7: break;
         }
     }
+}
+
+void cargarDocumentoIU(TreeMap* documentos, HashMap* palabrasGlobales)
+{
+    char* nombreArchivo;
+    int contador = 0;
+
+    // Creación de arreglo y reserva de memoria del arreglo en sí y de las palabras.
+
+    char** arregloSubStrings = (char**)calloc(CANT_DOCS, sizeof(char*));
+    for(int i = 0 ; i < CANT_DOCS ; i++)
+        arregloSubStrings[i] = (char *)calloc(50, sizeof(char));
+    
+    // Lee la línea de input ingresada por el usuario, separa esa línea en sub-strings (cada archivo), los almacena en un arreglo
+    // y retorna el tamaño del arreglo (cantidad de archivos/sub-strings leídos de la línea inicial)
+
+    contador = leerInput(arregloSubStrings);
+
+    for(int i = 0 ; i < contador ; i++)
+        cargarDocumento(documentos, palabrasGlobales, arregloSubStrings[i]);
+
+    free(arregloSubStrings);
 }

@@ -21,6 +21,11 @@ struct Palabra {
     List* apariciones;
 };
 
+ typedef struct {
+    char nombreDoc[25];
+    int cantApariciones;
+}ArrayOrden;
+
 char *convertirAMinusculas(char *palabra) {
     char *aux = calloc(strlen(palabra)+1, sizeof(char));
 
@@ -44,7 +49,7 @@ void *crearPalabra(char *palabra, int pos) {
     return new;
 }
 
-void *crearDocumento(FILE *archivo, HashMap *palabrasGlobales, char* fileName) {
+void* crearDocumento(FILE *archivo, HashMap *palabrasGlobales, char* fileName) {
     Documento *documento = malloc(sizeof(Documento));
 
     HashMap *palabras = createMap(100);
@@ -99,23 +104,25 @@ void cargarDocumento(TreeMap* documentos, HashMap* palabrasGlobales, char* fileN
     path = calloc(strlen(folder) + strlen(fileName) + 1, sizeof(char));
     strcat(path, folder);
     strcat(path, fileName);
+    printf("%s...\n", path);
 
     FILE *archivo = fopen(path, "r");
 
     if (archivo == NULL)
-        printf("No se pudo encontrar ningun archivo con ese nombre");
+        printf("No se pudo encontrar ningun archivo con el nombre % :(\n", fileName);
     else {
         Pair *documentoPair = searchTreeMap(documentos, fileName);
 
         if (documentoPair != NULL)
-            printf("El documento %s ya se encuentra agregado en el programa\n", fileName);
+            printf("El documento %s ya se encuentra agregado en el programa.\n", fileName);
         else {
             Documento* documento = crearDocumento(archivo, palabrasGlobales, fileName);
 
             insertTreeMap(documentos, fileName, documento);
-            printf("El documento %s fue annadido con exito al programa\n", fileName);
+            printf("El documento %s fue agregado con exito al programa :)\n", fileName);
         }   
     }
+    printf("\n");
 }
 
 
@@ -128,9 +135,91 @@ void mostrarDocumentos(TreeMap* documentos) {
     while (documentoPair) {
         documento = documentoPair->value;
 
-        printf("%d. %s. Palabras: %d. Caracteres: %d\n", cont, documento->nombre, documento->cantidadPalabras, documento->cantidadCaracteres);
+        printf("%d. %s. Palabras: %d. Caracteres: %d.\n", cont, documento->nombre, documento->cantidadPalabras, documento->cantidadCaracteres);
         cont++;
 
         documentoPair = nextTreeMap(documentos);
+    }
+}
+
+int leerInput(char** arregloSubStrings)
+{
+    int cont = 0;
+    char stringInput[256];
+    printf("Ingrese los nombres de los documentos:\n");
+    printf("(cada uno .txt al final)\n");
+    gets(stringInput);
+    printf("\n");
+    char *token = strtok(stringInput, ".");
+
+    while(token != NULL)
+    {
+        strcpy(arregloSubStrings[cont], token);
+        strcat(arregloSubStrings[cont], ".txt");
+        token = strtok(NULL, ".");
+
+        if(token) {
+            token += 4;
+            cont++;
+        } 
+
+    }
+
+    return cont;
+}
+
+int comparar(const void *pivot, const void *elemento)
+{
+    ArrayOrden* ptrPivot = (ArrayOrden *) pivot;
+    ArrayOrden* ptrElemento = (ArrayOrden *) elemento;
+    if (ptrPivot->cantApariciones < ptrElemento->cantApariciones) 
+        return 1;
+    else
+        return 0;
+}
+
+void buscarPorPalabra (HashMap* palabrasGlobales)
+{
+    Palabra* auxPalabra = NULL;
+    HashMapPair* auxPair = NULL;
+    Documento* auxDocumento = NULL;
+    HashMapPair* pairDocumento = NULL;
+    char* palabraBuscada = (char*)malloc(sizeof(char) * 100);
+
+    printf("Ingrese la palabra que desea buscar: \n");
+    gets(palabraBuscada);
+    fflush(stdin);
+    strcpy(palabraBuscada, convertirAMinusculas(palabraBuscada));  
+
+    auxPair = searchMap(palabrasGlobales, palabraBuscada); //auxPair : CHECK!
+    if(auxPair == NULL)
+        printf("No se encontro la palabra en ningun documento :(\n");
+    else
+    {
+        ArrayOrden* ordenados = (ArrayOrden*)malloc(sizeof(ArrayOrden) * size(auxPair->value));
+        
+        printf("La palabra %s se encuentra en los documentos:\n", auxPair->key);  
+        printf("\n");
+        
+        for(int i = 0 ; i < size(auxPair->value) ; i++) 
+        {                                           
+            if(i == 0)
+                auxDocumento = first(auxPair->value);
+            else
+                auxDocumento = next(auxPair->value);  
+
+            pairDocumento = searchMap(auxDocumento->palabras, palabraBuscada);
+            auxPalabra = pairDocumento->value;
+            
+            strcpy(ordenados[i].nombreDoc, auxDocumento->nombre);
+            ordenados[i].cantApariciones = auxPalabra->repeticionesDocumento;
+        }
+
+        qsort(ordenados, size(auxPair->value), sizeof(ArrayOrden), comparar);
+
+        for(int i = 0 ; i < size(auxPair->value) ; i++)
+            printf("%d. %s. Aparece %d veces. \n", i+1, ordenados[i].nombreDoc, ordenados[i].cantApariciones);
+        
+        printf("\n");
     }
 }
