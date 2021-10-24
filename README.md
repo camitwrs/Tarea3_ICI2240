@@ -23,22 +23,15 @@ Por ejemplo:
 - 1 caracter (”) es procesado como 3 caracteres (ÔÇØ)
 - 1 caracter (“) es procesado como 3 caracteres (ÔÇ£)
 
+* En función 1, si el usuario no escribe la extensión como se le indica (por ej. 16-0.txttt), va a encontrarlo igualmente, si se ingresan varios archivos juntos seguramente solo funcione el primero de ellos por tema de punteros, se asume que la extensión son 4 caracteres.
+
 ## Coevaluación:
 
-* ANGELO:  
- Responsable.
- Eficaz.
- Perseverante.
+* ANGELO:  Responsable. Eficaz. Perseverante.
 
-* JAVIER:
- Responsable.
- Buena disposición.
- Perseverante.
+* JAVIER: Responsable. Buena disposición. Perseverante.
 
-* CAMILA:
- Responsable.
- Buenas ideas/diseño para las soluciones.
- Perseverante.
+* CAMILA: Responsable. Buenas ideas/diseño para las soluciones. Perseverante.
 
 ## Puntos de premio/castigo:
 
