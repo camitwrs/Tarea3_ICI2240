@@ -5,3 +5,7 @@
 void initMenu();
 
 void cargarDocumentoIU(TreeMap* documentos, HashMap* palabrasGlobales);
+
+void palabrasFrecuentesIU(TreeMap* documentos);
+
+void buscarPalabraEnDocumentoIU(TreeMap* documentos);

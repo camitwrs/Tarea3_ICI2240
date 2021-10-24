@@ -13,6 +13,9 @@ void mostrarDocumentos(TreeMap* documentos);
 
 int leerInput(char** arregloSubStrings);
 
-void cargarDocumentoIU (TreeMap* documentos, HashMap* palabrasGlobales);
-
 void buscarPorPalabra (HashMap* palabrasGlobales);
+
+void buscarPalabraEnDocumento(TreeMap* documentos, char* nombreDoc);
+
+void mostrarPalabrasFrecuentes(char* nombreDoc, TreeMap* documentos);
+

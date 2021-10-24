@@ -22,9 +22,17 @@ struct Palabra {
 };
 
 struct ArrayOrden{
-    char nombreDoc[25];
-    int cantApariciones;
+    char* nombre;
+    float frecuencia;
+    int repeticiones;
 };
+
+int *_intdup(int n) {
+    int *aux = malloc(sizeof(int));
+    *(aux) = n;
+
+    return aux;
+}
 
 char *convertirAMinusculas(char *palabra) {
     char *aux = calloc(strlen(palabra)+1, sizeof(char));
@@ -57,20 +65,21 @@ void* crearDocumento(FILE *archivo, HashMap *palabrasGlobales, char* fileName) {
     int cantCaracteres = 0;
 
     char buffer[1024];
-    int pos;
+    int pos, *posPtr;
 
     while(1){
         if(fscanf(archivo, "%s", buffer) == EOF) break;
-
         pos = ftell(archivo);
+        posPtr = _intdup(pos);
         strcpy(buffer, convertirAMinusculas(buffer));
         HashMapPair *palabraDocPair = searchMap(palabras, buffer);
 
         if (palabraDocPair != NULL) {
             Palabra *palabra = (Palabra*) palabraDocPair->value;
             palabra->repeticionesDocumento += 1;
+            push_back(palabra->apariciones, posPtr);
         } else {
-            Palabra *palabra = crearPalabra(buffer, pos);
+            Palabra *palabra = crearPalabra(buffer, *(posPtr));
             insertMap(palabras, palabra->palabra, palabra);
 
             HashMapPair *palabraGlobPair = searchMap(palabrasGlobales, palabra->palabra);
@@ -132,6 +141,7 @@ void mostrarDocumentos(TreeMap* documentos) {
 
     int cont = 1;
 
+    printf("Los documentos son los siguientes:\n");
     while (documentoPair) {
         documento = documentoPair->value;
 
@@ -168,14 +178,24 @@ int leerInput(char** arregloSubStrings)
     return cont;
 }
 
-int comparar(const void *pivot, const void *elemento)
+int cmp_ascendente_repeticiones(const void *pivot, const void *elemento)
 {
     ArrayOrden* ptrPivot = (ArrayOrden *) pivot;
     ArrayOrden* ptrElemento = (ArrayOrden *) elemento;
-    if (ptrPivot->cantApariciones < ptrElemento->cantApariciones) 
+    if (ptrPivot->repeticiones < ptrElemento->repeticiones) 
         return 1;
     else
-        return 0;
+        return -1; 
+}
+
+int cmp_ascendente_frecuencia(const void *pivot, const void *elemento)
+{
+    ArrayOrden* ptrPivot = (ArrayOrden *) pivot;
+    ArrayOrden* ptrElemento = (ArrayOrden *) elemento;
+    if (ptrPivot->frecuencia < ptrElemento->frecuencia) 
+        return 1;
+    else
+        return -1; 
 }
 
 void buscarPorPalabra (HashMap* palabrasGlobales)
@@ -191,35 +211,155 @@ void buscarPorPalabra (HashMap* palabrasGlobales)
     fflush(stdin);
     strcpy(palabraBuscada, convertirAMinusculas(palabraBuscada));  
 
-    auxPair = searchMap(palabrasGlobales, palabraBuscada); //auxPair : CHECK!
+    auxPair = searchMap(palabrasGlobales, palabraBuscada); 
     if(auxPair == NULL)
         printf("No se encontro la palabra en ningun documento :(\n");
     else
     {
-        ArrayOrden* ordenados = (ArrayOrden*)malloc(sizeof(ArrayOrden) * size(auxPair->value));
+        ArrayOrden* apariciones = (ArrayOrden*)malloc(sizeof(ArrayOrden) * size(auxPair->value));
+        apariciones->nombre = (char*)malloc(sizeof(char) * 100);
         
-        printf("La palabra %s se encuentra en los documentos:\n", auxPair->key);  
-        printf("\n");
+        printf("La palabra '%s' se encuentra en los documentos:\n", auxPair->key);   
         
         for(int i = 0 ; i < size(auxPair->value) ; i++) 
         {                                           
             if(i == 0)
                 auxDocumento = first(auxPair->value);
             else
-                auxDocumento = next(auxPair->value);  
+                auxDocumento = next(auxPair->value); 
 
-            pairDocumento = searchMap(auxDocumento->palabras, palabraBuscada);
-            auxPalabra = pairDocumento->value;
-            
-            strcpy(ordenados[i].nombreDoc, auxDocumento->nombre);
-            ordenados[i].cantApariciones = auxPalabra->repeticionesDocumento;
-        }
-
-        qsort(ordenados, size(auxPair->value), sizeof(ArrayOrden), comparar);
+            pairDocumento = searchMap(auxDocumento->palabras, palabraBuscada); 
+            auxPalabra = pairDocumento->value;  
+            apariciones[i].nombre= auxDocumento->nombre;
+            apariciones[i].repeticiones = auxPalabra->repeticionesDocumento; // falta solo la 5 entera, no?
+                                                                            
+        qsort(apariciones, size(auxPair->value), sizeof(ArrayOrden), cmp_ascendente_repeticiones); 
 
         for(int i = 0 ; i < size(auxPair->value) ; i++)
-            printf("%d. %s. Aparece %d veces. \n", i+1, ordenados[i].nombreDoc, ordenados[i].cantApariciones);
+            printf("%d. %s. Aparece %d veces. \n", i+1, apariciones[i].nombre, apariciones[i].repeticiones);
         
         printf("\n");
+
+        free(apariciones);
+        }
     }
 }
+
+void buscarPalabraEnDocumento(TreeMap* documentos, char* nombreDoc)
+{
+    printf("...\n");
+    Pair* auxPair = searchTreeMap(documentos, nombreDoc);
+    if(auxPair == NULL) {
+        printf("El documento que ingreso no existe dentro del programa.\n");
+        printf("Importe el documento o revise que exista entre nuestros documentos (opcion 2)\n");
+    }
+    else {
+        char* palabraBuscar = (char*)malloc(sizeof(char) * 25);
+        char x[1024];
+        Documento* auxDoc = auxPair->value;
+
+        char *path = calloc(strlen("documentos/") + strlen(auxDoc->nombre) + 1, sizeof(char));
+        strcat(path, "documentos/");
+        strcat(path, auxDoc->nombre);
+        FILE *file = fopen(path, "r");
+
+        if(!file) {
+            printf("No se encontro el archivo");
+            return;
+        }
+            
+        printf("Nombre del doc : %s\n", auxDoc->nombre);
+        printf("\n\n");
+        printf("Ingrese la palabra que desea buscar\n");
+        gets(palabraBuscar);
+        fflush(stdin);
+        HashMapPair* auxHashPalabras = searchMap(auxDoc->palabras, palabraBuscar);
+        
+        if(auxHashPalabras == NULL)
+            printf("La palabra no existe dentro del documento\n");
+        else {
+            int i = 0;
+            Palabra* auxPalabra = auxHashPalabras->value;
+            int *posicionPalabra;
+
+            posicionPalabra = (int*) first(auxPalabra->apariciones);
+            printf("--Nombre del doc = %s\n", auxDoc->nombre);
+            while(posicionPalabra != NULL) {
+                // Intentamos empezar a mostrar el contexto 15 carácteres antes
+                int posicionContexto = *(posicionPalabra) - 15, cantPalabras = 0;
+
+                // Se verifica en caso de que intentemos a acceder a una posición inválida
+                if (posicionContexto < 0)
+                    posicionContexto = *(posicionPalabra);
+
+                // Se setea la posición y se guarda la palabra
+                fseek(file, posicionContexto, SEEK_SET);
+                fscanf(file, "%1023s", x);
+
+                // Avanzamos la posicion hasta la siguiente palabra, para evitar palabras que hayan quedado cortadas
+                posicionContexto += strlen(x) + 1;
+                if(i != 0)
+                    printf("%d.", i);
+                     
+                while(cantPalabras < 7) { // Se intenta mostrar una cantidad arbitraria de palabras (por eso el 7, random)
+                    fscanf(file, "%1023s", x);
+                    printf("%s ", x);
+                    cantPalabras++;
+                }
+                printf("\n");
+                i++; 
+                posicionPalabra = (int*) next(auxPalabra->apariciones);
+            }
+        }
+    }
+} 
+
+
+ void mostrarPalabrasFrecuentes(char * nombreDoc, TreeMap * documentos)
+ { 
+    Pair* auxPairTree = searchTreeMap(documentos, nombreDoc);
+    if(auxPairTree != NULL)
+    {
+        Documento * auxDocumento = auxPairTree->value;
+        HashMap * mapPalabras = auxDocumento->palabras;
+
+        int totalPalabras = auxDocumento->cantidadPalabras;
+       
+        ArrayOrden* frecuentes = (ArrayOrden*)malloc(sizeof(ArrayOrden) * totalPalabras);
+        frecuentes->nombre = (char*)malloc(sizeof(char) * 100);
+       
+        HashMapPair * palabraPair = firstMap(mapPalabras); 
+
+        int i = 0;
+        while(palabraPair != NULL)
+        {
+            Palabra * auxPalabra = palabraPair->value;
+
+            frecuentes[i].frecuencia = (float)auxPalabra->repeticionesDocumento / (float)totalPalabras;
+            frecuentes[i].repeticiones = auxPalabra->repeticionesDocumento;
+            frecuentes[i].nombre = malloc(strlen(auxPalabra->palabra) + 1);
+            strcpy(frecuentes[i].nombre, auxPalabra->palabra);
+            
+            palabraPair = nextMap(mapPalabras);
+
+            i++; 
+        }
+
+        qsort(frecuentes, totalPalabras, sizeof(ArrayOrden), cmp_ascendente_frecuencia);
+
+        printf("Palabras con mayor frecuencia: \n");
+        for(int i = 0 ; i < 10 ; i++)
+        {
+            printf("%d. Palabra: %s. Aparece %d veces. Frecuencia: %f. \n", i+1, frecuentes[i].nombre, frecuentes[i].repeticiones, frecuentes[i].frecuencia);
+        }
+        printf("\n");
+        
+        free(frecuentes);
+    }
+    /*else
+    {
+
+    }*/
+     
+
+ }

@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "headers/menu.h"
 #include "headers/funciones.h"
 #include "headers/treemap.h"
 #include "headers/hashmap.h"
@@ -72,16 +73,19 @@ void initMenu() {
             case 3:
                 buscarPorPalabra(palabrasGlobales);
                 break;
-            case 4: break;
+            case 4: 
+                palabrasFrecuentesIU(documentos);
+                break;
             case 5: break;
-            case 6: break;
+            case 6: 
+                buscarPalabraEnDocumentoIU(documentos);
+                break;
         }
     }
 }
 
 void cargarDocumentoIU(TreeMap* documentos, HashMap* palabrasGlobales)
 {
-    char* nombreArchivo;
     int contador = 0;
 
     // Creación de arreglo y reserva de memoria del arreglo en sí y de las palabras.
@@ -99,4 +103,26 @@ void cargarDocumentoIU(TreeMap* documentos, HashMap* palabrasGlobales)
         cargarDocumento(documentos, palabrasGlobales, arregloSubStrings[i]);
 
     free(arregloSubStrings);
+}
+
+void palabrasFrecuentesIU(TreeMap* documentos)
+{
+    char nombreDoc[100];
+    printf("Ingrese el nombre del documento:\n");
+    printf("(con .txt al final)\n");
+    gets(nombreDoc);
+    printf("\n");
+
+    mostrarPalabrasFrecuentes(nombreDoc, documentos);
+}
+
+void buscarPalabraEnDocumentoIU(TreeMap* documentos)
+{
+    char* nombreDoc = (char*)malloc(sizeof(char) * 100);
+    printf("Ingrese el nombre del documento donde desea realizar la busqueda (recuerde agregar el .txt al final)\n");
+    gets(nombreDoc);
+    fflush(stdin);
+    printf("\n");
+
+    buscarPalabraEnDocumento(documentos, nombreDoc);
 }
