@@ -9,7 +9,7 @@
 #include "headers/hashmap.h"
 #include "headers/list.h"
 
-#define CANT_DOCS 58
+#define CANT_DOCS 59
 
 /*char * _strdup(const char * str) {
     char * aux = (char *)malloc(strlen(str) + 1);
@@ -41,8 +41,8 @@ int getChoice() {
 }
 
 void initMenu() {
-    TreeMap* documentos = createTreeMap(lower_than_string);  // Key: nombre de documento   Value: puntero a struct Documento
-    HashMap* palabrasGlobales = createMap(100);  // Key: palabra   Value: lista con punteros a todos los documentos que contienen la palabra
+    TreeMap* documentos = createTreeMap(lower_than_string);  // Key: nombre de documento | Value: puntero a struct Documento
+    HashMap* palabrasGlobales = createMap(100);  // Key: palabra | Value: lista con punteros a todos los documentos que contienen la palabra
 
     int choice;
 
@@ -76,7 +76,9 @@ void initMenu() {
             case 4: 
                 palabrasFrecuentesIU(documentos);
                 break;
-            case 5: break;
+            case 5: 
+                palabrasRelevantesIU(documentos, palabrasGlobales);
+                break;
             case 6: 
                 buscarPalabraEnDocumentoIU(documentos);
                 break;
@@ -88,36 +90,35 @@ void cargarDocumentoIU(TreeMap* documentos, HashMap* palabrasGlobales)
 {
     int contador = 0;
 
-    // Creación de arreglo y reserva de memoria del arreglo en sí y de las palabras.
-
+    // Creación de array y reserva de memoria del array en sí y de las palabras.
     char** arregloSubStrings = (char**)calloc(CANT_DOCS, sizeof(char*));
     for(int i = 0 ; i < CANT_DOCS ; i++)
         arregloSubStrings[i] = (char *)calloc(50, sizeof(char));
     
-    // Lee la línea de input ingresada por el usuario, separa esa línea en sub-strings (cada archivo), los almacena en un arreglo
-    // y retorna el tamaño del arreglo (cantidad de archivos/sub-strings leídos de la línea inicial)
-
+    // Lee la línea de input ingresada por el usuario, separa esa línea en sub-strings (cada archivo), los almacena en un array
+    // y retorna el tamaño del array (cantidad de archivos/sub-strings leídos de la línea inicial)
     contador = leerInput(arregloSubStrings);
 
+    // Se recorre el array y para cada archivo (cada índice del array) se van cargando los documentos.
     for(int i = 0 ; i < contador ; i++)
         cargarDocumento(documentos, palabrasGlobales, arregloSubStrings[i]);
 
+    // Se libera la memoria del array.
     free(arregloSubStrings);
 }
 
 void palabrasFrecuentesIU(TreeMap* documentos)
 {
     char nombreDoc[100];
-    printf("Ingrese el nombre del documento:\n");
-    printf("(con .txt al final)\n");
+    printf("Ingrese el nombre del documento: (con .txt al final)\n");
     gets(nombreDoc);
     printf("\n");
 
     mostrarPalabrasFrecuentes(nombreDoc, documentos);
 }
 
-void buscarPalabraEnDocumentoIU(TreeMap* documentos)
-{
+void buscarPalabraEnDocumentoIU(TreeMap* documentos) 
+{   
     char* nombreDoc = (char*)malloc(sizeof(char) * 100);
     printf("Ingrese el nombre del documento donde desea realizar la busqueda (recuerde agregar el .txt al final)\n");
     gets(nombreDoc);
@@ -125,4 +126,15 @@ void buscarPalabraEnDocumentoIU(TreeMap* documentos)
     printf("\n");
 
     buscarPalabraEnDocumento(documentos, nombreDoc);
+}
+
+void palabrasRelevantesIU(TreeMap * documentos, HashMap* palabrasGlobales)
+{
+    printf("Ingrese el nombre del documento (recuerde usar .txt al final de este): \n");
+    char* nombreDoc = (char*)malloc(sizeof(char) * 100);
+    gets(nombreDoc);
+    fflush(stdin); 
+    printf("\n");
+
+    palabrasRelevantes(nombreDoc, documentos, palabrasGlobales);
 }

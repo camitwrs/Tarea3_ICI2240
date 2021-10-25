@@ -195,7 +195,10 @@ Pair * firstTreeMap(TreeMap * tree) {
     TreeNode* first = minimum(tree->root);
     tree->current = first;
 
-    return first->pair;
+    if (first == NULL)
+        return NULL;
+    else
+        return first->pair;
 }
 
 Pair * nextTreeMap(TreeMap * tree) {

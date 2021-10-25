@@ -9,3 +9,5 @@ void cargarDocumentoIU(TreeMap* documentos, HashMap* palabrasGlobales);
 void palabrasFrecuentesIU(TreeMap* documentos);
 
 void buscarPalabraEnDocumentoIU(TreeMap* documentos);
+
+void palabrasRelevantesIU(TreeMap *documentos, HashMap* palabrasGlobales);
